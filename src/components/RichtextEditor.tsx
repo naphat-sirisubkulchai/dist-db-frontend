@@ -11,7 +11,10 @@ import Placeholder from '@tiptap/extension-placeholder';
 import Heading from '@tiptap/extension-heading';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Input } from '@/components/ui/input';
+import BulletList from '@tiptap/extension-bullet-list';
+import OrderedList from '@tiptap/extension-ordered-list';
+import ListItem from '@tiptap/extension-list-item';
+
 import {
   Bold,
   Italic,
@@ -54,21 +57,27 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
     extensions: [
       StarterKit.configure({
         heading: false,
+        bulletList: false,
+        orderedList: false,
+        listItem: false,
+        codeBlock: { HTMLAttributes: { class: 'bg-gray-900 text-white p-3 rounded-md' } },
       }),
+
       Heading.configure({
         levels: [1, 2, 3, 4],
+      }).extend({
+        priority: 1000,
       }),
+
+      BulletList,
+      OrderedList,
+      ListItem,
+
       Underline,
       TextStyle,
       Color,
-      Highlight.configure({
-        multicolor: true,
-      }),
-      Image.configure({
-        HTMLAttributes: {
-          class: 'max-w-full rounded-lg',
-        },
-      }),
+      Highlight.configure({ multicolor: true }),
+      Image.configure({ HTMLAttributes: { class: 'max-w-full rounded-lg' } }),
       Placeholder.configure({
         placeholder: placeholder || 'Tell your story...',
       }),
@@ -79,10 +88,10 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
     },
     editorProps: {
       attributes: {
-        class: 'tiptap-editor prose prose-lg max-w-none focus:outline-none',
+        class: 'tiptap-editor max-w-none focus:outline-none',
       },
     },
-     immediatelyRender: false,
+    immediatelyRender: false,
   });
 
   useEffect(() => {

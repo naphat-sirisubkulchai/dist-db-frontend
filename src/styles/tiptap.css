@@ -1,0 +1,57 @@
+/* RESET PROSE OVERRIDE */
+.tiptap-editor h1,
+.tiptap-editor h2,
+.tiptap-editor h3,
+.tiptap-editor h4 {
+  all: revert !important;
+}
+
+/* Now apply your real heading style */
+.tiptap-editor h1 {
+  font-size: 2.25rem !important;
+  font-weight: 700 !important;
+  line-height: 1.2 !important;
+  margin-top: 1.5rem !important;
+  margin-bottom: 0.75rem !important;
+}
+
+.tiptap-editor h2 {
+  font-size: 1.75rem !important;
+  font-weight: 600 !important;
+  margin-top: 1.25rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.tiptap-editor h3 {
+  font-size: 1.5rem !important;
+  font-weight: 600 !important;
+}
+
+.tiptap-editor h4 {
+  font-size: 1.25rem !important;
+  font-weight: 500 !important;
+}
+
+.tiptap-editor blockquote {
+  border-left: 4px solid #d1d5db; /* gray-300 */
+  margin: 1rem 0;
+  padding-left: 1rem;
+  color: #4b5563; /* gray-600 */
+  font-style: italic;
+}
+
+.tiptap-editor ul {
+  list-style-type: disc !important;
+  margin-left: 1.5rem !important;
+  padding-left: 1rem !important;
+}
+
+.tiptap-editor ol {
+  list-style-type: decimal !important;
+  margin-left: 1.5rem !important;
+  padding-left: 1rem !important;
+}
+
+.tiptap-editor li {
+  margin: 0.25rem 0;
+}
