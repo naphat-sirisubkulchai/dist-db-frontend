@@ -32,8 +32,8 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50">
-      <Card className="w-full max-w-md bg-white border-gray-200">
+    <div className="flex items-center justify-center min-h-[62vh]">
+      <Card className="w-full max-w-md bg-white border-gray-200 shadow-lg">
         <CardHeader>
           <CardTitle className="text-gray-900">Register</CardTitle>
           <CardDescription className="text-gray-600">Create a new account to start blogging</CardDescription>

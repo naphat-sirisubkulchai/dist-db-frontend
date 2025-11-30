@@ -30,8 +30,8 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50">
-      <Card className="w-full max-w-md bg-white border-gray-200">
+    <div className="flex items-center justify-center min-h-[62vh]">
+      <Card className="w-full max-w-md bg-white border-gray-200 shadow-lg">
         <CardHeader>
           <CardTitle className="text-gray-900">Login</CardTitle>
           <CardDescription className="text-gray-600">Enter your credentials to access your account</CardDescription>

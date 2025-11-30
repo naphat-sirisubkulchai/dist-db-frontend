@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/context/auth-context';
+import { RichTextEditor } from '@/components/RichtextEditor';
 
 export default function CreatePostPage() {
   const [title, setTitle] = useState('');
@@ -128,7 +129,7 @@ export default function CreatePostPage() {
   }
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-2xl">
+    <div className="container mx-auto py-8 px-4 max-w-3xl">
       <Card className="bg-white border-gray-200">
         <CardHeader>
           <CardTitle className="text-gray-900">Create New Post</CardTitle>
@@ -151,18 +152,6 @@ export default function CreatePostPage() {
                 required
                 minLength={3}
                 className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="content" className="text-gray-700 font-medium">Content</Label>
-              <textarea
-                id="content"
-                className="flex min-h-[200px] w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                placeholder="Write your post content here..."
-                required
               />
             </div>
 
@@ -224,6 +213,15 @@ export default function CreatePostPage() {
                 onChange={(e) => setTags(e.target.value)}
                 placeholder="tech, lifestyle, coding"
                 className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Content</Label>
+              <RichTextEditor
+                content={content}
+                onChange={setContent}
+                placeholder="Tell your story..."
               />
             </div>
 

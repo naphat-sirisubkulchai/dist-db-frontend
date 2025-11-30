@@ -10,6 +10,7 @@
   --border: #e2e8f0;
   --input: #e2e8f0;
   --ring: #3b82f6;
+  --accent: #d2dae4;
 }
 
 @theme inline {
@@ -22,6 +23,7 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-accent: var(--accent);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 

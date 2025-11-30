@@ -211,7 +211,7 @@ export default function ProfilePage() {
 
       {/* Content */}
       {(activeTab === 'posts' || !isOwnProfile) && (
-        <div className="space-y-4">
+        <div className="space-y-4 mb-10">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">
             {isOwnProfile ? 'Your Posts' : `${user.username}'s Posts`}
           </h2>
@@ -272,7 +272,7 @@ export default function ProfilePage() {
       )}
 
       {isOwnProfile && activeTab === 'savedPosts' && (
-        <div className="space-y-4">
+        <div className="space-y-4 mb-10">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Saved Posts</h2>
           {!Array.isArray(savedPosts) || savedPosts.length === 0 ? (
             <div className="text-center py-12 text-gray-500">

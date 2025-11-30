@@ -130,7 +130,9 @@ export const userService = {
   },
 
   async follow(username: string) {
-    return fetchClient<{ following: boolean }>(`/users/${username}/follow`, {
+    return fetchClient<{
+      data: { following: boolean; }; following: boolean 
+}>(`/users/${username}/follow`, {
       method: 'POST',
     });
   },
