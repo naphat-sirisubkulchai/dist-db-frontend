@@ -17,7 +17,27 @@ export default function PostDetailPage() {
   const [comments, setComments] = useState<Comment[]>([]);
   const [commentContent, setCommentContent] = useState('');
   const [commentLoading, setCommentLoading] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyContent, setReplyContent] = useState('');
   const { user } = useAuth();
+
+  // Organize comments into parent-child structure
+  const organizeComments = (comments: Comment[]) => {
+    const parentComments = comments.filter(c => !c.parentComment);
+    const repliesMap = new Map<string, Comment[]>();
+
+    comments.forEach(c => {
+      if (c.parentComment) {
+        const parentId = c.parentComment;
+        if (!repliesMap.has(parentId)) {
+          repliesMap.set(parentId, []);
+        }
+        repliesMap.get(parentId)?.push(c);
+      }
+    });
+
+    return { parentComments, repliesMap };
+  };
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -59,10 +79,31 @@ export default function PostDetailPage() {
     try {
       const postId = post._id || post.id;
       if (!postId) return;
-      const res = await postService.like(postId);
-      setPost((prev) => (prev ? { ...prev, likesCount: res.likesCount, isLiked: res.isLiked } : prev));
+      const res: any = await postService.like(postId);
+      // Backend returns { success: true, data: { liked: boolean, likesCount: number } }
+      const result = res?.data || res;
+      setPost((prev) => (prev ? { ...prev, likesCount: result.likesCount, isLiked: result.liked } : prev));
     } catch (err) {
       console.error('Failed to like post', err);
+    }
+  };
+
+  const handleSavePost = async () => {
+    if (!post) return;
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+
+    try {
+      const postId = post._id || post.id;
+      if (!postId) return;
+      const res: any = await postService.save(postId);
+      // Backend returns { success: true, data: { saved: boolean } }
+      const result = res?.data || res;
+      setPost((prev) => (prev ? { ...prev, isSaved: result.saved } : prev));
+    } catch (err) {
+      console.error('Failed to save post', err);
     }
   };
 
@@ -91,6 +132,46 @@ export default function PostDetailPage() {
     }
   };
 
+  const handleLikeComment = async (commentId: string) => {
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+
+    try {
+      const res: any = await commentService.like(commentId);
+      // Backend returns { success: true, data: { liked: boolean, likesCount: number } }
+      const result = res?.data || res;
+      setComments((prev) =>
+        prev.map((c) =>
+          (c._id || c.id) === commentId ? { ...c, likesCount: result.likesCount, isLiked: result.liked } : c
+        )
+      );
+    } catch (err) {
+      console.error('Failed to like comment', err);
+    }
+  };
+
+  const handleReplySubmit = async (e: React.FormEvent, parentCommentId: string) => {
+    e.preventDefault();
+    if (!post || !user) return;
+
+    setCommentLoading(true);
+    try {
+      const postId = post._id || post.id;
+      if (!postId) return;
+      const response: any = await commentService.create(postId, replyContent, parentCommentId);
+      const commentData = response?.data || response;
+      setComments((prev) => [commentData, ...prev]);
+      setReplyContent('');
+      setReplyingTo(null);
+    } catch (err) {
+      console.error('Failed to add reply', err);
+    } finally {
+      setCommentLoading(false);
+    }
+  };
+
   if (loading) {
     return <div className="container mx-auto py-10 text-center">Loading post...</div>;
   }
@@ -108,25 +189,6 @@ export default function PostDetailPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Medium-style Header */}
-      <header className="border-b border-gray-200 bg-white sticky top-0 z-50">
-        <div className="max-w-[1336px] mx-auto flex justify-between items-center py-4 px-6">
-          <Link href="/">
-            <h1 className="text-[32px] font-serif font-bold tracking-tight cursor-pointer hover:opacity-80 transition">Medium</h1>
-          </Link>
-          <div className="flex items-center gap-6">
-            {user && (
-              <>
-                <Link href="/posts/create" className="text-sm text-gray-600 hover:text-gray-900">Write</Link>
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center text-white text-sm font-semibold">
-                  {user.username.charAt(0).toUpperCase()}
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      </header>
-
       <article className="max-w-[680px] mx-auto px-6 py-16">
         {/* Title */}
         <h1 className="text-[42px] font-serif font-bold mb-2 leading-[52px] text-gray-900">{post.title}</h1>
@@ -172,9 +234,12 @@ export default function PostDetailPage() {
             </button>
           </div>
           <div className="flex items-center gap-4">
-            <button className="text-gray-500 hover:text-gray-900">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+            <button
+              onClick={handleSavePost}
+              className="text-gray-500 hover:text-gray-900 transition"
+            >
+              <svg className="w-6 h-6" fill={(post as any).isSaved ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={(post as any).isSaved ? 0 : 2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
               </svg>
             </button>
           </div>
@@ -251,22 +316,129 @@ export default function PostDetailPage() {
             <p className="text-center text-gray-500 py-8">No responses yet</p>
           ) : (
             <div className="space-y-8">
-              {comments.map((c) => (
-                <div key={c._id || c.id} className="flex gap-4 pb-8 border-b border-gray-200 last:border-0">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
-                    {c.author.username.charAt(0).toUpperCase()}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-sm font-medium text-gray-900">{c.author.username}</span>
-                      <span className="text-xs text-gray-500">
-                        {new Date(c.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                      </span>
+              {organizeComments(comments).parentComments.map((c) => {
+                const { repliesMap } = organizeComments(comments);
+                const replies = repliesMap.get(c._id || c.id || '') || [];
+
+                return (
+                <div key={c._id || c.id}>
+                  {/* Parent Comment */}
+                <div key={c._id || c.id} className="pb-8 border-b border-gray-200 last:border-0">
+                  <div className="flex gap-4">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
+                      {c.author.username.charAt(0).toUpperCase()}
                     </div>
-                    <p className="text-[16px] text-gray-900 leading-6 whitespace-pre-wrap">{c.content}</p>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-sm font-medium text-gray-900">{c.author.username}</span>
+                        <span className="text-xs text-gray-500">
+                          {new Date(c.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        </span>
+                      </div>
+                      <p className="text-[16px] text-gray-900 leading-6 whitespace-pre-wrap mb-3">{c.content}</p>
+
+                      {/* Comment Actions */}
+                      <div className="flex items-center gap-6 text-sm">
+                        <button
+                          onClick={() => handleLikeComment(c._id || c.id || '')}
+                          className={`flex items-center gap-2 transition ${c.isLiked ? 'text-gray-900' : 'text-gray-500 hover:text-gray-900'}`}
+                        >
+                          <svg className="w-5 h-5" fill={c.isLiked ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={c.isLiked ? 0 : 2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                          </svg>
+                          <span>{c.likesCount || 0}</span>
+                        </button>
+                        {user && (
+                          <button
+                            onClick={() => setReplyingTo(replyingTo === (c._id || c.id) ? null : (c._id || c.id || ''))}
+                            className="text-gray-500 hover:text-gray-900 transition"
+                          >
+                            Reply
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Reply Form */}
+                      {replyingTo === (c._id || c.id) && user && (
+                        <form onSubmit={(e) => handleReplySubmit(e, c._id || c.id || '')} className="mt-4 ml-0">
+                          <div className="flex gap-3">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
+                              {user.username.charAt(0).toUpperCase()}
+                            </div>
+                            <div className="flex-1">
+                              <textarea
+                                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-gray-900 outline-none resize-none"
+                                placeholder="Write a reply..."
+                                value={replyContent}
+                                onChange={(e) => setReplyContent(e.target.value)}
+                                rows={2}
+                                required
+                              />
+                              <div className="flex gap-2 mt-2">
+                                <button
+                                  type="submit"
+                                  disabled={commentLoading}
+                                  className="bg-green-600 text-white hover:bg-green-700 rounded-full px-4 py-1 text-xs font-medium transition disabled:opacity-50"
+                                >
+                                  {commentLoading ? 'Posting...' : 'Reply'}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setReplyingTo(null);
+                                    setReplyContent('');
+                                  }}
+                                  className="text-gray-600 hover:text-gray-900 text-xs"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </form>
+                      )}
+                    </div>
                   </div>
                 </div>
-              ))}
+
+                  {/* Replies to this comment */}
+                  {replies.length > 0 && (
+                    <div className="ml-14 mt-6 space-y-6 border-l-2 border-gray-100 pl-6">
+                      {replies.map((reply) => (
+                        <div key={reply._id || reply.id} className="pb-6 border-b border-gray-100 last:border-0">
+                          <div className="flex gap-3">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-cyan-500 flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
+                              {reply.author.username.charAt(0).toUpperCase()}
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <span className="text-sm font-medium text-gray-900">{reply.author.username}</span>
+                                <span className="text-xs text-gray-500">
+                                  {new Date(reply.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                </span>
+                                <span className="text-xs text-gray-400">· Reply</span>
+                              </div>
+                              <p className="text-sm text-gray-900 leading-6 whitespace-pre-wrap mb-2">{reply.content}</p>
+
+                              {/* Reply Actions */}
+                              <button
+                                onClick={() => handleLikeComment(reply._id || reply.id || '')}
+                                className={`flex items-center gap-2 transition text-xs ${reply.isLiked ? 'text-gray-900' : 'text-gray-500 hover:text-gray-900'}`}
+                              >
+                                <svg className="w-4 h-4" fill={reply.isLiked ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={reply.isLiked ? 0 : 2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                </svg>
+                                <span>{reply.likesCount || 0}</span>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                );
+              })}
             </div>
           )}
         </section>

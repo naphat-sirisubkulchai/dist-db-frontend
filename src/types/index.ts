@@ -71,6 +71,34 @@ export interface Comment {
   post: string;
   parentComment?: string;
   likesCount: number;
+  isLiked?: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export enum NotificationType {
+  POST_LIKE = 'post_like',
+  COMMENT = 'comment',
+  COMMENT_REPLY = 'comment_reply',
+  COMMENT_LIKE = 'comment_like',
+}
+
+export interface Notification {
+  id?: string;
+  _id?: string;
+  recipient: string;
+  sender: User;
+  type: NotificationType;
+  post?: {
+    _id: string;
+    title: string;
+    slug: string;
+  };
+  comment?: {
+    _id: string;
+    content: string;
+  };
+  read: boolean;
   createdAt: string;
   updatedAt: string;
 }
