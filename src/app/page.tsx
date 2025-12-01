@@ -2,11 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import { postService } from '@/services/api';
-import type { Post, PaginatedResponse } from '@/types';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import type { Post } from '@/types';
 import Link from 'next/link';
 import { useAuth } from '@/context/auth-context';
+import { getExcerpt } from '@/lib/getExcerpt';
 
 export default function Home() {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -61,7 +60,7 @@ export default function Home() {
       )}
 
       {/* Main Content */}
-      <main className="max-w-[1336px] mx-auto py-16 px-6">
+      <main className="max-w-[1336px] mx-auto pt-8 pb-16 px-6">
         {loading ? (
           <div className="text-center py-20 text-gray-500">Loading...</div>
         ) : safePosts.length === 0 ? (
@@ -92,9 +91,12 @@ export default function Home() {
                       <h2 className="text-[22px] font-bold text-gray-900 mb-2 group-hover:text-gray-600 transition leading-7 font-serif">
                         {post.title}
                       </h2>
-                      <p className="text-gray-600 text-[16px] mb-4 line-clamp-2 leading-5">
-                        {post.excerpt || post.content.substring(0, 140)}...
-                      </p>
+                      <div
+                        className="tiptap-editor prose prose-sm max-w-none line-clamp-2 overflow-hidden prose-p:m-0 prose-headings:m-0 prose-li:m-0 prose-blockquote:m-0"
+                        dangerouslySetInnerHTML={{
+                          __html: getExcerpt(post.content, 200),
+                        }}
+                      />
                       <div className="flex items-center gap-4 text-[13px] text-gray-500">
                         <span>{new Date(post.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
                         <span>·</span>
@@ -111,8 +113,8 @@ export default function Home() {
                     </div>
                     {post.coverImage && (
                       <div className="flex-shrink-0 w-[112px] h-[112px]">
-                        <img 
-                          src={post.coverImage} 
+                        <img
+                          src={post.coverImage}
                           alt={post.title}
                           className="w-full h-full object-cover"
                         />
