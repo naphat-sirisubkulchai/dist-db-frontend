@@ -80,6 +80,10 @@ export const postService = {
     return fetchClient<any>(`/posts?page=${page}&limit=${limit}`);
   },
 
+  async search(query: string, page = 1, limit = 50) {
+    return fetchClient<any>(`/posts?search=${encodeURIComponent(query)}&page=${page}&limit=${limit}`);
+  },
+
   async getFeed(page = 1, limit = 10) {
     return fetchClient<any>(`/posts/feed?page=${page}&limit=${limit}`);
   },
