@@ -88,6 +88,10 @@ export const postService = {
     return fetchClient<any>(`/posts/${slug}`);
   },
 
+  async getById(id: string) {
+    return fetchClient<any>(`/posts/id/${id}`);
+  },
+
   async getByUser(userId: string, page = 1, limit = 100) {
     return fetchClient<any>(`/posts/user/${userId}?page=${page}&limit=${limit}`);
   },
@@ -117,6 +121,19 @@ export const postService = {
 
   async getSavedPosts(page = 1, limit = 100) {
     return fetchClient<any>(`/posts/saved?page=${page}&limit=${limit}`);
+  },
+
+  async update(postId: string, postData: any) {
+    return fetchClient<any>(`/posts/${postId}`, {
+      method: 'PUT',
+      body: JSON.stringify(postData),
+    });
+  },
+
+  async delete(postId: string) {
+    return fetchClient<{ success: boolean; message: string }>(`/posts/${postId}`, {
+      method: 'DELETE',
+    });
   },
 };
 
